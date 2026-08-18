@@ -1,0 +1,103 @@
+{
+  "project_name": "RCC_Layered_Compaction_Meso_Mechanism",
+  "reference_paper": "水利学报 2024年第55卷第9期 碾压混凝土分层碾压离散元模拟及施工成层细观机理研究",
+  "authors": "刘东海, 马子茹, 孙龙飞 (天津大学)",
+  "mix_proportions_kg_m3": {
+    "water": 101.0,
+    "cement": 94.7,
+    "fly_ash": 115.7,
+    "sand_under_5mm": 695.0,
+    "small_stone_5_to_20mm": 701.0,
+    "medium_stone_20_to_40mm": 701.0,
+    "water_reducing_admixture_pct": 0.7,
+    "water_reducing_admixture_kg": 1.473,
+    "air_entraining_admixture_pct": 0.15,
+    "air_entraining_admixture_kg": 0.311,
+    "water_binder_ratio_WC": 0.48,
+    "VC_seconds": 6.4
+  },
+  "material_densities_kg_m3": {
+    "coarse_aggregate_limestone": 2689.0,
+    "fine_aggregate_natural_sand": 2581.0,
+    "standard_specimen_bulk_density_28d": 2367.72,
+    "upper_layer_core_density_28d": 2386.44,
+    "interlayer_core_density_28d": 2400.78,
+    "lower_layer_core_density_28d": 2405.0
+  },
+  "grain_size_distribution": {
+    "sieve_sizes_mm": [
+      40.0,
+      31.5,
+      25.0,
+      20.0,
+      16.0,
+      10.0,
+      5.0,
+      4.0,
+      3.0,
+      2.0,
+      1.0
+    ],
+    "actual_passing_pct": [
+      100.0,
+      93.5,
+      83.2,
+      71.0,
+      58.6,
+      42.1,
+      28.8,
+      24.5,
+      20.1,
+      15.2,
+      8.0
+    ],
+    "dem_upper_layer_passing_pct": [
+      100.0,
+      94.0,
+      84.1,
+      71.5,
+      59.0,
+      42.8,
+      29.0,
+      24.5,
+      20.1,
+      15.0,
+      8.0
+    ],
+    "dem_lower_layer_passing_pct": [
+      100.0,
+      93.8,
+      83.5,
+      70.8,
+      58.2,
+      41.9,
+      28.5,
+      24.2,
+      19.8,
+      14.8,
+      7.8
+    ],
+    "mortar_particle_diameter_mm": 2.0,
+    "fine_aggregate_simplification": "spherical (<5mm)",
+    "coarse_aggregate_representation": "irregular 3D clumps (5-40mm)"
+  },
+  "geometry_mm": {
+    "physical_test_trough": {
+      "length": 2200.0,
+      "width": 1100.0,
+      "lower_thickness": 170.0,
+      "upper_thickness": 380.0
+    },
+    "dem_model_trough": {
+      "length": 300.0,
+      "width": 120.0,
+      "lower_compacted_height": 140.0,
+      "upper_placement_height": 330.0,
+      "upper_extended_height_case4": 400.0
+    },
+    "core_specimen_size": {
+      "diameter": 150.0,
+      "height": 150.0
+    }
+  }
+}

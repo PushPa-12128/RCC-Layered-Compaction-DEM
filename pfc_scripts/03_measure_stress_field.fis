@@ -1,0 +1,62 @@
+; ==============================================================================
+; PFC3D FISH Script: 03_measure_stress_field.fis
+; 论文复现: 45个测量圆 (9x5) 层面垂直应力场监测与对数演化分析 (图5, 图12, 图13)
+; 坐标定义:
+;   x坐标: -0.08, -0.06, -0.04, -0.02, 0, 0.02, 0.04, 0.06, 0.08 (9列)
+;   y坐标: -0.045, -0.025, 0, 0.025, 0.045 (5行)
+;   z坐标: 0.140 m (层面结合面高度)
+; ==============================================================================
+
+fish define init_45_measure_spheres
+  local rad = 0.015 ; 测量圆/球半径 15mm
+  local z_pos = 0.140
+  
+  local x_list = list.create(9)
+  x_list(1) = -0.08
+  x_list(2) = -0.06
+  x_list(3) = -0.04
+  x_list(4) = -0.02
+  x_list(5) =  0.00
+  x_list(6) =  0.02
+  x_list(7) =  0.04
+  x_list(8) =  0.06
+  x_list(9) =  0.08
+  
+  local y_list = list.create(5)
+  y_list(1) = -0.045
+  y_list(2) = -0.025
+  y_list(3) =  0.000
+  y_list(4) =  0.025
+  y_list(5) =  0.045
+  
+  local id = 1
+  local i = 0
+  local j = 0
+  loop i (1, 9)
+    loop j (1, 5)
+      local px = x_list(i)
+      local py = y_list(j)
+      command
+        measure create id [id] position [px] [py] [z_pos] radius [rad]
+      end_command
+      id = id + 1
+    end_loop
+  end_loop
+end
+
+@init_45_measure_spheres
+
+fish define sample_45_stress_circles
+  local sum_szz = 0.0
+  local count = 45
+  local i = 0
+  loop i (1, 45)
+    local mp = measure.find(i)
+    if mp # null
+      local szz = measure.stress(mp, 3, 3) ; 垂直应力 sigma_zz
+      sum_szz = sum_szz + szz
+    endif
+  end_loop
+  local avg_szz = sum_szz / count
+  io.out('层面 45 个测量圆平均垂直应力 sigma_zz = ' + string(avg_szz) + ' Pa')
+end

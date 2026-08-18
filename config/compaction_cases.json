@@ -1,0 +1,111 @@
+{
+  "compaction_cases": [
+    {
+      "case_id": 1,
+      "name": "标准工况",
+      "lift_thickness_mm": 330,
+      "excitation_force_N": 5800,
+      "rolling_speed_m_s": 8.34,
+      "passes": 20,
+      "remarks": "吻合实际碾压试验"
+    },
+    {
+      "case_id": 2,
+      "name": "激振力增大对比工况",
+      "lift_thickness_mm": 330,
+      "excitation_force_N": 8700,
+      "rolling_speed_m_s": 8.34,
+      "passes": 20,
+      "remarks": "激振力增大1.5倍(增加2900N)"
+    },
+    {
+      "case_id": 3,
+      "name": "行进速度增大对比工况",
+      "lift_thickness_mm": 330,
+      "excitation_force_N": 5800,
+      "rolling_speed_m_s": 12.51,
+      "passes": 20,
+      "remarks": "速度增大1.5倍(增加4.17m/s)"
+    },
+    {
+      "case_id": 4,
+      "name": "碾压厚度增大对比工况",
+      "lift_thickness_mm": 400,
+      "excitation_force_N": 5800,
+      "rolling_speed_m_s": 8.34,
+      "passes": 20,
+      "remarks": "厚度增大1.21倍(增加70mm)"
+    }
+  ],
+  "embedment_shear_cases": [
+    {
+      "case_id": 1,
+      "embedment_depth_mm": 2.197,
+      "peak_disp_mm": 2.667,
+      "peak_shear_load_kN": 105.615,
+      "peak_shear_stress_MPa": 5.977
+    },
+    {
+      "case_id": 2,
+      "embedment_depth_mm": 2.511,
+      "peak_disp_mm": 2.684,
+      "peak_shear_load_kN": 113.95,
+      "peak_shear_stress_MPa": 6.448
+    },
+    {
+      "case_id": 3,
+      "embedment_depth_mm": 1.459,
+      "peak_disp_mm": 2.49,
+      "peak_shear_load_kN": 86.5,
+      "peak_shear_stress_MPa": 4.895
+    },
+    {
+      "case_id": 4,
+      "embedment_depth_mm": 1.354,
+      "peak_disp_mm": 2.379,
+      "peak_shear_load_kN": 83.926,
+      "peak_shear_stress_MPa": 4.749
+    },
+    {
+      "case_id": 5,
+      "embedment_depth_mm": 1.0,
+      "peak_disp_mm": 1.941,
+      "peak_shear_load_kN": 70.373,
+      "peak_shear_stress_MPa": 3.982
+    },
+    {
+      "case_id": 6,
+      "embedment_depth_mm": 1.71,
+      "peak_disp_mm": 2.605,
+      "peak_shear_load_kN": 91.052,
+      "peak_shear_stress_MPa": 5.152
+    },
+    {
+      "case_id": 7,
+      "embedment_depth_mm": 2.009,
+      "peak_disp_mm": 2.589,
+      "peak_shear_load_kN": 100.996,
+      "peak_shear_stress_MPa": 5.715
+    }
+  ],
+  "scaling_comparison": {
+    "actual_test": {
+      "drum_diameter_mm": 1200,
+      "drum_width_mm": 1000,
+      "amplitude_mm": 0.7,
+      "frequency_Hz": 42,
+      "excitation_force_kN": 58.0,
+      "static_weight_kN": 27.5,
+      "travel_speed_km_h": 1.5
+    },
+    "dem_model": {
+      "drum_diameter_mm": 120,
+      "drum_width_mm": 100,
+      "amplitude_mm": 0.7,
+      "frequency_Hz": 42,
+      "excitation_force_kN": 5.8,
+      "static_weight_kN": 2.75,
+      "travel_speed_km_h": 1.5
+    }
+  }
+}

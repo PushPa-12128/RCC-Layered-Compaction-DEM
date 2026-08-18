@@ -1,0 +1,58 @@
+; ==============================================================================
+; PFC3D FISH Script: 04_embedment_calculation.fis
+; 论文复现: 层面骨料嵌入值 z_q 定量计算 (式3)
+; 公式: z_q = sum(z_c - z'_pmin) / N
+;   z_c: 层面线纵坐标 (下层砂浆最上端平均高度)
+;   z'_pmin: 上层粗骨料底端纵坐标
+;   N: 上层层面粗骨料个数
+; ==============================================================================
+
+fish define calculate_embedment_depth
+  local sum_zc = 0.0
+  local count_mortar = 0
+  
+  ; 1. 计算下层层面砂浆顶端平均纵坐标 z_c (取层面附近 -0.02m 到 +0.01m 范围内下层砂浆颗粒)
+  local bp = ball.head
+  loop while bp # null
+    if ball.group(bp) == 'lower_mortar'
+      local bz = ball.pos.z(bp)
+      if bz >= 0.130
+        sum_zc = sum_zc + bz + ball.radius(bp)
+        count_mortar = count_mortar + 1
+      endif
+    endif
+    bp = ball.next(bp)
+  end_loop
+  
+  local z_c = 0.140
+  if count_mortar > 0
+    z_c = sum_zc / count_mortar
+  endif
+  
+  ; 2. 统计上层粗骨料最下端纵坐标 z'_pmin 并计算嵌入值
+  local sum_embed = 0.0
+  local N_aggregate = 0
+  
+  local cp = clump.head
+  loop while cp # null
+    if clump.group(cp) == 'upper_coarse'
+      local cp_zmin = clump.pos.z(cp) - 0.5 * clump.vol(cp)^(1.0/3.0)
+      ; 筛选处于层面交界处的粗骨料 (z'_pmin < z_c + 0.03m 且 > z_c - 0.02m)
+      if cp_zmin <= (z_c + 0.015)
+        local embed_i = (z_c - cp_zmin)
+        if embed_i > 0
+          sum_embed = sum_embed + embed_i
+          N_aggregate = N_aggregate + 1
+        endif
+      endif
+    endif
+    cp = clump.next(cp)
+  end_loop
+  
+  local z_q_mm = 0.0
+  if N_aggregate > 0
+    z_q_mm = (sum_embed / N_aggregate) * 1000.0 ; 转换为 mm
+  endif
+  
+  io.out('--> 当前层面平均骨料嵌入值 z_q = ' + string(z_q_mm) + ' mm (统计骨料数 N = ' + string(N_aggregate) + ')')
+end

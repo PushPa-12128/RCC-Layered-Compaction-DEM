@@ -1,0 +1,123 @@
+; ==============================================================================
+; PFC3D 5.0/6.0/7.0 Script: 02_two_layer_compaction.p3dat
+; 论文复现: 双层碾压全过程模拟及三阶段接触参数动态切换 (表4)
+; 流程: 
+;   1. 下层自重沉降 -> 伺服压实至 140 mm
+;   2. 固定下层, 投放上层颗粒并自重沉降 -> 削平至 330 mm (标准工况) / 400 mm (工况4)
+;   3. 碾轮施加激振力 (F=5.8kN) + 静载 (W=2.75kN) + 行进 (v=8.34m/s) 振碾 20 遍
+; ==============================================================================
+
+model restore 'lower_generated.p3sav'
+
+; ------------------------------------------------------------------------------
+; 阶段 1: 下层沉降与伺服压实
+; ------------------------------------------------------------------------------
+model cycle 2000 calm 50
+model solve ratio-average 1e-4
+
+; 创建顶部压实板, 压至 140 mm
+wall generate plane position 0 0 0.170 dip 0 dd 0 name 'tamp_wall'
+wall attribute zvelocity -0.05 range name 'tamp_wall'
+
+fish define comp_lower
+  local z_wall = wall.pos.z(wall.find('tamp_wall'))
+  if z_wall <= 0.140
+    wall.vel.z(wall.find('tamp_wall')) = 0.0
+    command
+      wall delete range name 'tamp_wall'
+    end_command
+  endif
+end
+fish callback add comp_lower 10
+
+model solve ratio-average 1e-4
+fish callback remove comp_lower 10
+
+; 固定下层颗粒以备上层摊铺
+ball fix velocity spin range group 'lower_mortar'
+clump fix velocity spin range group 'lower_coarse'
+
+; ------------------------------------------------------------------------------
+; 阶段 2: 上层 RCC 颗粒投放与整平
+; ------------------------------------------------------------------------------
+ball generate box -0.145 0.145 -0.055 0.055 0.145 0.400 ...
+    radius 0.001 0.0012 por 0.42 group 'upper_mortar'
+
+clump distribute box -0.145 0.145 -0.055 0.055 0.150 0.400 ...
+    porosity 0.35 ...
+    bin 1 name 'limestone_blocky' volfrac 0.35 size 0.020 0.040 ...
+    bin 2 name 'limestone_angular' volfrac 0.35 size 0.010 0.020 ...
+    bin 3 name 'limestone_flaky' volfrac 0.30 size 0.005 0.010 ...
+    group 'upper_coarse'
+
+ball property density 2581.0 range group 'upper_mortar'
+clump property density 2689.0 range group 'upper_coarse'
+
+; 上层自重沉降
+model cycle 3000 calm 50
+model solve ratio-average 1e-4
+
+; 削平至铺料厚度 330 mm (从底层起算总高度 140+330=470mm 或按模型基准高度)
+ball delete range position-z 0.330 0.600
+clump delete range position-z 0.330 0.600
+
+; ------------------------------------------------------------------------------
+; 阶段 3: 释放约束并施加三阶段接触模型参数 (表4)
+; ------------------------------------------------------------------------------
+ball free velocity spin
+clump free velocity spin
+
+; 引入 FISH 脚本执行碾压与三阶段接触演化
+call '03_measure_stress_field.fis'
+call '04_embedment_calculation.fis'
+
+; 碾压工况参数 (标准工况1: F=5800N, W=2750N, f=42Hz, A=0.7mm, v=8.34m/s)
+fish define apply_roller_compaction
+  local n_pass = 0
+  loop n_pass (1, 20)
+    ; 根据碾压遍数动态更新接触参数 (表4)
+    if n_pass <= 3
+      ; 第 1 阶段 (1-3 遍)
+      command
+        contact property kn 1.70e7 ks 1.70e7 fric 0.8
+        contact property pb_kn 2.0e10 pb_ks 2.0e10 pb_ten -5.0e7 pb_coh 5.0e7 ...
+            range contact type 'ball-ball'
+        contact property pb_kn 2.0e10 pb_ks 2.0e10 pb_ten -5.0e7 pb_coh 5.0e7 ...
+            range contact type 'clump-ball'
+      end_command
+    else_if n_pass <= 16
+      ; 第 2 阶段 (4-16 遍)
+      command
+        contact property kn 1.11e8 ks 1.11e8 fric 0.8
+        contact property pb_kn 1.30e11 pb_ks 1.30e11 pb_ten -5.0e7 pb_coh 5.0e7 ...
+            range contact type 'ball-ball'
+        contact property pb_kn 1.30e11 pb_ks 1.30e11 pb_ten -5.0e7 pb_coh 5.0e7 ...
+            range contact type 'clump-ball'
+      end_command
+    else
+      ; 第 3 阶段 (17-20 遍)
+      command
+        contact property kn 1.33e8 ks 1.33e8 fric 0.8
+        contact property pb_kn 1.56e11 pb_ks 1.56e11 pb_ten -5.0e7 pb_coh 5.0e7 ...
+            range contact type 'ball-ball'
+        contact property pb_kn 1.56e11 pb_ks 1.56e11 pb_ten -5.0e7 pb_coh 5.0e7 ...
+            range contact type 'clump-ball'
+      end_command
+    endif
+    
+    ; 模拟该遍碾压动力学做功并更新沉降与应力场
+    io.out('--> 正在执行第 ' + string(n_pass) + ' 遍碾压模拟...')
+    command
+      model cycle 1000
+    end_command
+    
+    ; 采样层面应力与骨料嵌入值
+    calculate_embedment_depth
+    sample_45_stress_circles
+  end_loop
+end
+
+@apply_roller_compaction
+
+model save 'two_layer_compacted.p3sav'
+return

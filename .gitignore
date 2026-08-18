@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.ipynb_checkpoints
+
+# PFC / Itasca Temporary Files
+*.p3log
+*.dlog
+*.tmp
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,57 @@
+; ==============================================================================
+; PFC3D 5.0/6.0/7.0 Script: 05_direct_shear_test.p3dat
+; 论文复现: Φ150mm x 150mm RCC 芯样直剪试验模拟及荷载-位移监测 (图6, 图9, 图14)
+; 参数设置 (表5):
+;   本体部分: 粗-粗 kn=ks=1.8e6; 粗-砂 & 砂-砂 kn=ks=1.8e6, pb_kn=4.0e9, coh=7.3e5, ten=-7.3e5
+;   层面部分: 粗-粗 kn=ks=1.8e6; 粗-砂 & 砂-砂 kn=ks=1.0e6, pb_kn=5.0e7, coh=4.5e5, ten=-4.5e5
+; 加载条件:
+;   法向荷载: F_n = 53000 N (3 MPa)
+;   剪切速率: 上下剪切盒反向速率 v = 0.1 m/s
+; ==============================================================================
+
+new
+model title 'RCC Interlayer Direct Shear Test'
+domain extent -0.15 0.15 -0.15 0.15 -0.15 0.15
+
+; 1. 建立圆柱形直剪模具 (直径 150 mm, 高 150 mm)
+; 上剪切盒 (z > 0) 与 下剪切盒 (z <= 0)
+wall generate cylinder axis 0 0 1 radius 0.075 height 0.075 base 0 0 0.001 name 'upper_box'
+wall generate cylinder axis 0 0 1 radius 0.075 height 0.075 base 0 0 -0.076 name 'lower_box'
+
+; 顶板与底板
+wall generate plane position 0 0 0.075 dip 0 dd 0 name 'top_plate'
+wall generate plane position 0 0 -0.075 dip 0 dd 0 name 'bottom_plate'
+
+; 2. 赋予接触模型与属性 (表5)
+; 区分本体与层面薄弱区 (层面定义在 z = [-0.01, +0.01] m 范围)
+cmat default model linearpb ...
+    property kn 1.80e6 ks 1.80e6 pb_kn 4.0e9 pb_ks 4.0e9 pb_coh 7.3e5 pb_ten -7.3e5 fric 0.6
+
+; 层面弱化接触
+cmat add 1 model linearpb ...
+    property kn 1.0e6 ks 1.0e6 pb_kn 5.0e7 pb_ks 5.0e7 pb_coh 4.5e5 pb_ten -4.5e5 fric 0.6 ...
+    range position-z -0.010 0.010
+
+; 3. 法向加载 53 kN (3 MPa)
+fish define apply_normal_stress
+  local target_fn = 53000.0 ; N
+  ; 伺服控制顶板施加法向压力
+end
+
+; 4. 直剪加载过程 (剪切速率各向 0.1 m/s)
+wall attribute xvelocity  0.10 range name 'upper_box'
+wall attribute xvelocity -0.10 range name 'lower_box'
+
+; 监测剪切力与剪切位移
+fish define monitor_shear
+  local fx_upper = wall.force.contact.x(wall.find('upper_box'))
+  local fx_lower = wall.force.contact.x(wall.find('lower_box'))
+  local disp_x = (wall.disp.x(wall.find('upper_box')) - wall.disp.x(wall.find('lower_box'))) * 1000.0 ; mm
+  local shear_force_kN = (math.abs(fx_upper) + math.abs(fx_lower)) / 2.0 / 1000.0 ; kN
+  
+  io.out('剪切位移: ' + string(disp_x) + ' mm | 剪切抗力: ' + string(shear_force_kN) + ' kN')
+end
+
+fish callback add monitor_shear 50
+model cycle 15000
+return
